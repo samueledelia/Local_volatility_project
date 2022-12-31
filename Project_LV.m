@@ -299,6 +299,12 @@ clearvars
 % Market expiries
 T = [ 0.047 	 0.093 	 0.178 	 0.258 	 0.510 	 0.762 	 1.011 ];
 
+%domestic discount factor
+disc_fact=[ 0.9993910 	 0.9986680 	 0.9972880 	 0.9958860 	 0.9910190 	 0.9855220 	 0.9804450];
+
+%foreign discount factor
+disc_fact_for=[ 1.0002703 	 1.0003940 	 1.0006179 	 1.0008642 	 1.0015410 	 1.0018667 	 1.0026841];
+
 % forwards at market expiries
 Fwd = [1.181939	 1.182941	1.184843	1.186803	1.193438	1.200485	1.207686];
 
@@ -358,3 +364,53 @@ legend('MktVol','ModelVol','LocalVol');
 figure;
 plot(MaxErr,'.','MarkerSize',15);
 title('calibration error at each iteration of the fixed-point calibration');
+
+%% point 4.2
+clc
+
+%Let's consider a plain vanilla option and a digital option with the following caratheristics:
+expiry=T(5);
+strike=K(5,2);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PRICING (PLAIN VANILLA OPTION)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% MC settings
+N = 100000; %MC simulations
+M = 100; %timesteps
+
+% MC simulation (LV)
+S = lv_simulation_log(T,Fwd,V,K,N,M,expiry);
+
+% option price (LV)
+discount_factor = interp1(T,disc_fact,expiry);
+lv_price_pv = discount_factor*mean( max(S(1,:) - strike, 0) );
+
+fprintf('Price of the plain vanilla option with strike=%.2f and expiry=%.1f\n',strike,expiry);
+disp(lv_price_pv);
+
+%Confidence interval of 95 percent
+z=1.96;  %quantile 0.95
+v_n_pv=std(discount_factor*max(S(1,:) - strike, 0)); %sample variance of the Monte Carlo simulation
+Error_pv=sqrt(v_n_pv)/sqrt(N);
+
+fprintf('confidence interval of level 95 for the option price');
+disp(Error_pv);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PRICING (DIGITAL OPTION)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+lv_price_do= discount_factor*mean((S(1,:) > strike));
+
+fprintf('Price of the digital option with strike=%.2f and expiry=%.1f\n',strike,expiry);
+disp(lv_price_do);
+
+%Confidence interval of 95 percent
+z=1.96;  %quantile 0.95
+v_n_do=std(discount_factor*(S(1,:) > strike)); %sample variance of the Monte Carlo simulation
+Error_do=sqrt(v_n_do)/sqrt(N);
+
+fprintf('confidence interval of level 95 for the option price');
+disp(Error_do);
