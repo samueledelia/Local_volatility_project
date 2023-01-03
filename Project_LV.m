@@ -393,10 +393,10 @@ disp(lv_price_pv);
 %Confidence interval of 95 percent
 z=1.96;  %quantile 0.95
 v_n_pv=std(discount_factor*max(S(1,:) - strike, 0)); %sample variance of the Monte Carlo simulation
-Error_pv=sqrt(v_n_pv)/sqrt(N);
+Error_pv=z*sqrt(v_n_pv)/sqrt(N);
 
-fprintf('confidence interval of level 95 for the option price');
-disp(Error_pv);
+fprintf('Confidence interval of level 95 for the option price\n');
+fprintf('%.5f $ +/- %.5f $\n\n',lv_price_pv,Error_pv);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PRICING (DIGITAL OPTION)
@@ -410,7 +410,53 @@ disp(lv_price_do);
 %Confidence interval of 95 percent
 z=1.96;  %quantile 0.95
 v_n_do=std(discount_factor*(S(1,:) > strike)); %sample variance of the Monte Carlo simulation
-Error_do=sqrt(v_n_do)/sqrt(N);
+Error_do=z*sqrt(v_n_do)/sqrt(N);
 
-fprintf('confidence interval of level 95 for the option price');
-disp(Error_do);
+fprintf('Confidence interval of level 95 for the digital option price\n');
+fprintf('%.5f $ +/- %.5f $\n\n',lv_price_do,Error_do);
+
+%% point 4.3
+clc
+
+sigma = MktVol(5,2);
+expiry=T(5);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PRICING UNDER BLACK (PLAIN VANILLA OPTION)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% MC simulation (Black)
+N_B = 100000; %MC simulations
+S_B = black_simulation_log(T,Fwd,sigma,N_B,expiry); 
+
+% Black price of a plain vanilla option
+price_black_pv = discount_factor*mean(max(S_B(1,:) - strike,0));
+%black_impl_vol = blsimpv(Fwd,strike,0,expiry,price_black/discount_factor);
+
+fprintf('Price (under BS) of the plain vanilla option with strike=%.2f and expiry=%.1f\n',strike,expiry);
+disp(price_black_pv);
+
+%Confidence interval of 95 percent
+z=1.96;  %quantile 0.95
+v_black_pv=std(discount_factor*max(S_B(1,:) - strike, 0)); %sample variance of the Monte Carlo simulation
+Error_black_pv=z*sqrt(v_black_pv)/sqrt(N_B);
+
+fprintf('Confidence interval of level 95 for the option price (under BS):\n');
+fprintf('%.5f $ +/- %.5f $\n\n',price_black_pv,Error_black_pv);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PRICING UNDER BLACK(DIGITAL OPTION)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+price_black_do= discount_factor*mean((S_B(1,:) > strike));
+
+fprintf('Price (under BS) of the digital option with strike=%.2f and expiry=%.1f\n',strike,expiry);
+disp(price_black_do);
+
+%Confidence interval of 95 percent
+z=1.96;  %quantile 0.95
+v_black_do=std(discount_factor*(S_B(1,:) > strike)); %sample variance of the Monte Carlo simulation
+Error_black_do=z*sqrt(v_black_do)/sqrt(N_B);
+
+fprintf('Confidence interval of level 95 for the digital option price\n');
+fprintf('%.5f $ +/- %.5f $\n\n',price_black_do,Error_black_do);
