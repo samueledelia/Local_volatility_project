@@ -1,4 +1,6 @@
-%% point 2.1
+% LOCAL VOLATILITY PROJECT
+
+% point 2.1
 clc
 clear all
 
@@ -74,6 +76,7 @@ plot(MaxErr,'.','MarkerSize',15);
 title('calibration error at each iteration of the fixed-point calibration');
 
 %% point 2.2
+
 clc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
